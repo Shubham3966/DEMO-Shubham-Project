@@ -49,7 +49,7 @@ jobs:
           path: target/
 
       - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        run: echo 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 | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build and Tag Docker Image
         run: |
