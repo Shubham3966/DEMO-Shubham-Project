@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: Advanced CI/CD Pipeline
 
 on:
   push:
@@ -23,7 +23,40 @@ jobs:
           java-version: '17'
 
       - name: Build with Maven
-        run: mvn clean install
+        run: mvn clean package -DskipTests
 
       - name: Run Tests
         run: mvn test
+
+      - name: Store Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: application-jar
+          path: target/*.jar
+
+  dockerize:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: application-jar
+          path: target/
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build and Tag Docker Image
+        run: |
+          docker build -t ghcr.io/${{ github.repository_owner }}/mcm-project:latest .
+          docker tag ghcr.io/${{ github.repository_owner }}/mcm-project:latest ghcr.io/${{ github.repository_owner }}/mcm-project:${{ github.run_number }}
+
+      - name: Push Docker Image
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/mcm-project:latest
+          docker push ghcr.io/${{ github.repository_owner }}/mcm-project:${{ github.run_number }}
