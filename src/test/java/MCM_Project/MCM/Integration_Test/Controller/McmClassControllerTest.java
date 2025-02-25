@@ -49,6 +49,7 @@ class McmClassControllerTest {
 
     @Test
     void testGetMcmClassById_Success() throws Exception {
+        
         McmClass mcmClass = new McmClass();
         mcmClass.setId(1L);
         mcmClass.setName("Standard Consumption");
