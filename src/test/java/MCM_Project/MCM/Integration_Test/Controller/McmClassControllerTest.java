@@ -44,7 +44,7 @@ class McmClassControllerTest {
         mockMvc.perform(get("/api/mcm-class"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(1))
-                .andExpect(jsonPath("$[0].name").value("Standard Consumption"));
+                .andExpect(jsonPath("$[0].name").value("Standard Consumption_ss"));
     }
 
     @Test
