@@ -44,7 +44,7 @@ jobs:
 
       - name: Clean Target Directory (Remove Old Artifacts)
         run: rm -rf target/* || echo "Target directory is already clean."
-    
+
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
@@ -54,32 +54,29 @@ jobs:
       - name: Verify Downloaded JAR (Debugging Step)
         run: ls -l target/ || echo "No JAR file found in target/!"
 
+      - name: Set JAR File Name
+        run: |
+          JAR_FILE=$(find target -type f -name "*.jar" | head -n 1)
+          if [[ -z "$JAR_FILE" ]]; then
+            echo "Error: No JAR file found in target/ directory!"
+            exit 1
+          fi
+          echo "JAR_FILE=$(basename "$JAR_FILE")" >> $GITHUB_ENV
+
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build and Tag Docker Image
         run: |
           REPO_NAME=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          
-          # Ensure there is exactly one JAR file
-          JAR_FILE=$(find target -type f -name "*.jar" | head -n 1)
-      
-          if [[ -z "$JAR_FILE" ]]; then
-            echo "Error: No JAR file found in target/ directory!"
-            exit 1
-          fi
-      
-          echo "Using JAR File: $JAR_FILE"
-          
-          docker build --build-arg JAR_FILE=$(basename "$JAR_FILE") -t ghcr.io/$REPO_NAME/mcm-project:latest .
+          docker build --build-arg JAR_FILE=${{ env.JAR_FILE }} -t ghcr.io/$REPO_NAME/mcm-project:latest .
           docker tag ghcr.io/$REPO_NAME/mcm-project:latest ghcr.io/$REPO_NAME/mcm-project:${{ github.run_number }}
-      
+
       - name: Push Docker Image
         run: |
           REPO_NAME=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           docker push ghcr.io/$REPO_NAME/mcm-project:latest
           docker push ghcr.io/$REPO_NAME/mcm-project:${{ github.run_number }}
-
 
   deploy:
     needs: dockerize
