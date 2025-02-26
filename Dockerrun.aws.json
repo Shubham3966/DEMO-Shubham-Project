@@ -5,7 +5,7 @@
       "Update": "true"
     },
     "Authentication": {
-      "Bucket": "your-s3-bucket",
+      "Bucket": "elasticbeanstalk-ap-south-1-490004655906",
       "Key": "dockercfg.json"
     },
     "Ports": [
