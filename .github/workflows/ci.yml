@@ -66,6 +66,7 @@ jobs:
   deploy:
     needs: dockerize
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -73,17 +74,24 @@ jobs:
       - name: Install AWS CLI
         run: |
           sudo apt-get update
-          sudo apt-get install -y awscli
+          sudo apt-get install -y unzip
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+          aws --version  # Verify installation
 
       - name: Install Elastic Beanstalk CLI
         run: |
           pip install awsebcli --upgrade --user
+          echo "$HOME/.local/bin" >> $GITHUB_PATH  # Ensure awsebcli is in PATH
 
       - name: Deploy to Elastic Beanstalk
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          EB_APPLICATION_NAME: ${{ secrets.EB_APPLICATION_NAME }}
+          EB_ENVIRONMENT_NAME: ${{ secrets.EB_ENVIRONMENT_NAME }}
         run: |
-          export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-          export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          export AWS_REGION=${{ secrets.AWS_REGION }}
-
-          eb init -p docker ${{ secrets.EB_APPLICATION_NAME }} --region $AWS_REGION
-          eb deploy ${{ secrets.EB_ENVIRONMENT_NAME }}     
+          eb init -p docker $EB_APPLICATION_NAME --region $AWS_REGION
+          eb deploy $EB_ENVIRONMENT_NAME
