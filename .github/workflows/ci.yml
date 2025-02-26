@@ -48,18 +48,21 @@ jobs:
           name: application-jar
           path: target/
 
+      - name: Verify Target Directory (Debugging Step)
+        run: ls -l target/ || echo "Target directory not found!"
+
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build and Tag Docker Image
         run: |
-          REPO_NAME=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')  # Convert to lowercase
-          docker build -t ghcr.io/$REPO_NAME/mcm-project:latest .
+          REPO_NAME=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          docker build --build-arg JAR_FILE=target/*.jar -t ghcr.io/$REPO_NAME/mcm-project:latest .
           docker tag ghcr.io/$REPO_NAME/mcm-project:latest ghcr.io/$REPO_NAME/mcm-project:${{ github.run_number }}
 
       - name: Push Docker Image
         run: |
-          REPO_NAME=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')  # Convert to lowercase
+          REPO_NAME=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           docker push ghcr.io/$REPO_NAME/mcm-project:latest
           docker push ghcr.io/$REPO_NAME/mcm-project:${{ github.run_number }}
 
