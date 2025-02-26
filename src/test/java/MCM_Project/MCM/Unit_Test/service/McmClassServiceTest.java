@@ -35,6 +35,7 @@ class McmClassServiceTest {
         mcmClass = new McmClass();
         mcmClass.setId(1L);
         mcmClass.setName("Standard Consumption");
+        
     }
 
     @Test
