@@ -46,10 +46,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: application-jar
-          path: target/
+          path: .
 
-      - name: Verify Target Directory (Debugging Step)
-        run: ls -l target/ || echo "Target directory not found!"
+      - name: Verify Downloaded JAR (Debugging Step)
+        run: ls -l || echo "No JAR file found!"
 
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -57,7 +57,9 @@ jobs:
       - name: Build and Tag Docker Image
         run: |
           REPO_NAME=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          docker build --build-arg JAR_FILE=target/*.jar -t ghcr.io/$REPO_NAME/mcm-project:latest .
+          JAR_FILE=$(ls *.jar)  # Find the JAR file
+          echo "Using JAR File: $JAR_FILE"
+          docker build --build-arg JAR_FILE=$JAR_FILE -t ghcr.io/$REPO_NAME/mcm-project:latest .
           docker tag ghcr.io/$REPO_NAME/mcm-project:latest ghcr.io/$REPO_NAME/mcm-project:${{ github.run_number }}
 
       - name: Push Docker Image
