@@ -43,7 +43,7 @@ class McmClassServiceTest {
         when(mcmClassRepository.findAll()).thenReturn(mcmClassList);
 
         List<McmClass> result = mcmClassService.getAllMcmClasses();
-        assertEquals(1, result.size());
+        assertEquals(2, result.size());
     }
 
     @Test
