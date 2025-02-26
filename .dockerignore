@@ -1,0 +1,13 @@
+# Ignore Git files
+.git
+.gitignore
+
+# Ignore dependencies
+*.iml
+.idea/
+.vscode/
+*.class
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
