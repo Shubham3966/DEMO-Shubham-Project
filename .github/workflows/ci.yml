@@ -50,7 +50,7 @@ jobs:
         with:
           name: application-jar
           path: target/
-    
+
       - name: Verify Downloaded JAR (Debugging Step)
         run: ls -l target/ || echo "No JAR file found in target/!"
 
@@ -62,6 +62,9 @@ jobs:
             exit 1
           fi
           echo "JAR_FILE=$(basename "$JAR_FILE")" >> $GITHUB_ENV
+
+      - name: Remove Docker Cache
+        run: docker builder prune -f
 
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
