@@ -4,10 +4,6 @@
       "Name": "ghcr.io/Shubham3966/mcm-project:latest",
       "Update": "true"
     },
-    "Authentication": {
-      "Bucket": "elasticbeanstalk-ap-south-1-490004655906",
-      "Key": "dockercfg.json"
-    },
     "Ports": [
       {
         "ContainerPort": "8080"
