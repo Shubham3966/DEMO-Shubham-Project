@@ -1,11 +1,9 @@
 ---
 applications:
   - name: mcm-project
-    memory: 512M
-    disk_quota: 512M
+    memory: 1GB
+    disk_quota: 1GB
     instances: 1
-    path: target/mcm-project.jar
+    path: target/MCM-0.0.1-SNAPSHOT.jar
     buildpacks:
       - sap_java_buildpack
-    env:
-      SPRING_PROFILES_ACTIVE: cloud
