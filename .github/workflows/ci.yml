@@ -46,15 +46,21 @@ jobs:
           sudo apt install -y cf8-cli
           cf --version # Verify installation
 
-      - name: Authenticate to Cloud Foundry
-        env:
-          CF_CLIENT_ID: ${{ secrets.CF_CLIENT_ID }}
-          CF_CLIENT_SECRET: ${{ secrets.CF_CLIENT_SECRET }}
-          CF_ORG: ${{ secrets.CF_ORG }}
-          CF_SPACE: ${{ secrets.CF_SPACE }}
-
+      - name: Extract Credentials from JSON
         run: |
-          echo "$CF_CLIENT_ID" "$CF_CLIENT_SECRET"
+          CLIENT_ID=$(echo '${{ secrets.CF_SERVICE_KEY_JSON }}' | jq -r '.clientid')
+          CLIENT_SECRET=$(echo '${{ secrets.CF_SERVICE_KEY_JSON }}' | jq -r '.clientsecret')
+          ORG="your-org" #replace your-org
+          SPACE="your-space" #replace your-space
+          echo "CF_CLIENT_ID=$CLIENT_ID" >> $GITHUB_ENV
+          echo "CF_CLIENT_SECRET=$CLIENT_SECRET" >> $GITHUB_ENV
+          echo "CF_ORG=$ORG" >> $GITHUB_ENV
+          echo "CF_SPACE=$SPACE" >> $GITHUB_ENV
+        shell: bash
+        uses: dcarbone/jq-action@v1 #add jq action to workflow.
+
+      - name: Authenticate to Cloud Foundry
+        run: |
           cf api https://api.cf.us10-001.hana.ondemand.com
           cf auth "$CF_CLIENT_ID" "$CF_CLIENT_SECRET" --client-credentials
           cf target -o "$CF_ORG" -s "$CF_SPACE"
