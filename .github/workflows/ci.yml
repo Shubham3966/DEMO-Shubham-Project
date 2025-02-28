@@ -37,11 +37,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Cloud Foundry CLI (via apt)
+      - name: Set up Cloud Foundry CLI
         run: |
-          sudo apt update
-          sudo apt install -y cf-cli
-          cf --version  # Verify installation
+          wget -qO- "https://packages.cloudfoundry.org/stable?release=linux64-binary&source=github" | tar -zx
+          sudo mv cf /usr/local/bin/
 
       - name: Login to Cloud Foundry using Service Key
         run: |
