@@ -22,6 +22,7 @@ public class ActorController {
 
     @GetMapping("/{id}")
     public Optional<Actor> getActorById(@PathVariable Long id) {
+        
         return actorService.getActorById(id);
     }
 
