@@ -28,6 +28,7 @@ public class ActorController {
     @PostMapping
     public Actor createActor(@RequestBody Actor actor) {
         return actorService.createActor(actor);
+        
     }
 
     @DeleteMapping("/{id}")
