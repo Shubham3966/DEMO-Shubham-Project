@@ -37,20 +37,29 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Cloud Foundry CLI
+      - name: Install Cloud Foundry CLI (Latest Version)
         run: |
+          sudo apt remove cf-cli -y || true  # Remove old version if exists
           curl -fsSL https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo tee /usr/share/keyrings/cloudfoundry-keyring.asc > /dev/null
           echo "deb [signed-by=/usr/share/keyrings/cloudfoundry-keyring.asc] https://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
           sudo apt update
-          sudo apt install -y cf-cli
+          sudo apt install -y cf8-cli
           cf --version  # Verify installation
+
 
       - name: Login to Cloud Foundry using Service Key
         run: |
           echo '${{ secrets.CF_SERVICE_KEY }}' > service-key.json
           cf api https://api.cf.us10-001.hana.ondemand.com
-          cf auth $(jq -r '.clientid' service-key.json) $(jq -r '.clientsecret' service-key.json) --client-credentials
+          CLIENT_ID=$(jq -r '.clientid' service-key.json)
+          CLIENT_SECRET=$(jq -r '.clientsecret' service-key.json)
+          if [[ -z "$CLIENT_ID" || -z "$CLIENT_SECRET" ]]; then
+            echo "Error: Client ID or Secret is missing in service key."
+            exit 1
+          fi
+          cf auth "$CLIENT_ID" "$CLIENT_SECRET" --client-credentials
           cf target -o ${{ secrets.CF_ORG }} -s ${{ secrets.CF_SPACE }}
+
 
       - name: Deploy to Cloud Foundry
         run: cf push
