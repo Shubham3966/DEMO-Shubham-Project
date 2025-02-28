@@ -47,18 +47,13 @@ jobs:
           cf --version  # Verify installation
 
 
-      - name: Login to Cloud Foundry using Service Key
+      - name: Authenticate to Cloud Foundry (Using OAuth Token)
+        env:
+          CF_REFRESH_TOKEN: ${{ secrets.CF_REFRESH_TOKEN }}
         run: |
-          echo '${{ secrets.CF_SERVICE_KEY }}' > service-key.json
           cf api https://api.cf.us10-001.hana.ondemand.com
-          CLIENT_ID=$(jq -r '.clientid' service-key.json)
-          CLIENT_SECRET=$(jq -r '.clientsecret' service-key.json)
-          if [[ -z "$CLIENT_ID" || -z "$CLIENT_SECRET" ]]; then
-            echo "Error: Client ID or Secret is missing in service key."
-            exit 1
-          fi
-          cf auth "$CLIENT_ID" "$CLIENT_SECRET" --client-credentials
-          cf target -o ${{ secrets.CF_ORG }} -s ${{ secrets.CF_SPACE }}
+          echo "$CF_REFRESH_TOKEN" | cf auth --bearer-token
+          cf target -o "your-org" -s "your-space"
 
 
       - name: Deploy to Cloud Foundry
