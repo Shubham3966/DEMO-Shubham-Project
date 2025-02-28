@@ -41,6 +41,7 @@ jobs:
         run: |
           wget -qO- "https://packages.cloudfoundry.org/stable?release=linux64-binary&source=github" | tar -zx
           sudo mv cf /usr/local/bin/
+          cf --version  # Check if installed
 
       - name: Login to Cloud Foundry using Service Key
         run: |
