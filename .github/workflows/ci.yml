@@ -29,7 +29,7 @@ jobs:
         run: mvn test
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4 # ✅ Updated from v3 to v4
+        uses: actions/upload-artifact@v4
         with:
           name: application-jar
           path: target/*.jar
@@ -37,26 +37,26 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' # Deploy only on push to main
+    if: github.event_name == 'push'
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Download Build Artifact
-        uses: actions/download-artifact@v4 # ✅ Updated from v3 to v4
+        uses: actions/download-artifact@v4
         with:
           name: application-jar
           path: target/
 
       - name: Install Cloud Foundry CLI (Latest Version)
         run: |
-          sudo apt remove cf-cli -y || true # Remove old version if exists
+          sudo apt remove cf-cli -y || true
           curl -fsSL https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo tee /usr/share/keyrings/cloudfoundry-keyring.asc > /dev/null
           echo "deb [signed-by=/usr/share/keyrings/cloudfoundry-keyring.asc] https://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
           sudo apt update
-          sudo apt install -y cf-cli
-          cf --version # Verify installation
+          sudo apt install -y cf8-cli
+          cf --version
 
       - name: Extract Credentials from JSON
         run: |
@@ -78,5 +78,4 @@ jobs:
           cf target -o "$CF_ORG" -s "$CF_SPACE"
 
       - name: Deploy to Cloud Foundry
-        run: |
-          cf push my-app -p target/*.jar
+        run: cf push my-app -p target/*.jar
