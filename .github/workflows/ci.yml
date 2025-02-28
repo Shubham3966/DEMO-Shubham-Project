@@ -28,6 +28,12 @@ jobs:
       - name: Run Tests
         run: mvn test
 
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: application-jar
+          path: target/*.jar
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -37,41 +43,40 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: application-jar
+          path: target/
+
       - name: Install Cloud Foundry CLI (Latest Version)
         run: |
           sudo apt remove cf-cli -y || true # Remove old version if exists
           curl -fsSL https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo tee /usr/share/keyrings/cloudfoundry-keyring.asc > /dev/null
           echo "deb [signed-by=/usr/share/keyrings/cloudfoundry-keyring.asc] https://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
           sudo apt update
-          sudo apt install -y cf8-cli
+          sudo apt install -y cf-cli
           cf --version # Verify installation
 
       - name: Extract Credentials from JSON
-        uses: dcarbone/jq-action@v1 #add jq action to workflow.
-          
-
-      - name: Extract Credentials from JSON
         run: |
-          CLIENT_ID=$(echo '${{ secrets.CF_SERVICE_KEY_JSON }}' | jq -r '.clientid')
-          CLIENT_SECRET=$(echo '${{ secrets.CF_SERVICE_KEY_JSON }}' | jq -r '.clientsecret')
-          ORG="your-org" #replace your-org
-          SPACE="your-space" #replace your-space
+          echo '${{ secrets.CF_SERVICE_KEY_JSON }}' > service-key.json
+          CLIENT_ID=$(jq -r '.clientid' service-key.json)
+          CLIENT_SECRET=$(jq -r '.clientsecret' service-key.json)
+          ORG=$(jq -r '.org' service-key.json)
+          SPACE=$(jq -r '.space' service-key.json)
+
           echo "CF_CLIENT_ID=$CLIENT_ID" >> $GITHUB_ENV
           echo "CF_CLIENT_SECRET=$CLIENT_SECRET" >> $GITHUB_ENV
           echo "CF_ORG=$ORG" >> $GITHUB_ENV
           echo "CF_SPACE=$SPACE" >> $GITHUB_ENV
-        shell: bash
 
       - name: Authenticate to Cloud Foundry
         run: |
           cf api https://api.cf.us10-001.hana.ondemand.com
           cf auth "$CF_CLIENT_ID" "$CF_CLIENT_SECRET" --client-credentials
           cf target -o "$CF_ORG" -s "$CF_SPACE"
-        env:
-          CF_CLIENT_ID: ${{ env.CF_CLIENT_ID }}
-          CF_CLIENT_SECRET: ${{ env.CF_CLIENT_SECRET }}
-          CF_ORG: ${{ env.CF_ORG }}
-          CF_SPACE: ${{ env.CF_SPACE }}
 
       - name: Deploy to Cloud Foundry
-        run: cf push
+        run: |
+          cf push my-app -p target/*.jar
