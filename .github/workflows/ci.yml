@@ -47,6 +47,10 @@ jobs:
           cf --version # Verify installation
 
       - name: Extract Credentials from JSON
+        uses: dcarbone/jq-action@v1 #add jq action to workflow.
+          
+
+      - name: Extract Credentials from JSON
         run: |
           CLIENT_ID=$(echo '${{ secrets.CF_SERVICE_KEY_JSON }}' | jq -r '.clientid')
           CLIENT_SECRET=$(echo '${{ secrets.CF_SERVICE_KEY_JSON }}' | jq -r '.clientsecret')
@@ -57,13 +61,17 @@ jobs:
           echo "CF_ORG=$ORG" >> $GITHUB_ENV
           echo "CF_SPACE=$SPACE" >> $GITHUB_ENV
         shell: bash
-        uses: dcarbone/jq-action@v1 #add jq action to workflow.
 
       - name: Authenticate to Cloud Foundry
         run: |
           cf api https://api.cf.us10-001.hana.ondemand.com
           cf auth "$CF_CLIENT_ID" "$CF_CLIENT_SECRET" --client-credentials
           cf target -o "$CF_ORG" -s "$CF_SPACE"
+        env:
+          CF_CLIENT_ID: ${{ env.CF_CLIENT_ID }}
+          CF_CLIENT_SECRET: ${{ env.CF_CLIENT_SECRET }}
+          CF_ORG: ${{ env.CF_ORG }}
+          CF_SPACE: ${{ env.CF_SPACE }}
 
       - name: Deploy to Cloud Foundry
         run: cf push
