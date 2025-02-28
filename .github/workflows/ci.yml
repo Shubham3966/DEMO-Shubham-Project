@@ -45,14 +45,11 @@ jobs:
           sudo apt install -y cf-cli
           cf --version  # Verify installation
 
-
       - name: Login to Cloud Foundry using Service Key
         run: |
           echo '${{ secrets.CF_SERVICE_KEY }}' > service-key.json
           cf api https://api.cf.us10-001.hana.ondemand.com
-          cf auth --client-id $(jq -r '.clientid' service-key.json) \
-                  --client-secret $(jq -r '.clientsecret' service-key.json) \
-                  --identity-url $(jq -r '.url' service-key.json)
+          cf auth $(jq -r '.clientid' service-key.json) $(jq -r '.clientsecret' service-key.json) --client-credentials
           cf target -o ${{ secrets.CF_ORG }} -s ${{ secrets.CF_SPACE }}
 
       - name: Deploy to Cloud Foundry
