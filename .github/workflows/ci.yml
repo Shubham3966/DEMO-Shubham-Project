@@ -63,8 +63,8 @@ jobs:
           echo '${{ secrets.CF_SERVICE_KEY_JSON }}' > service-key.json
           CLIENT_ID=$(jq -r '.clientid' service-key.json)
           CLIENT_SECRET=$(jq -r '.clientsecret' service-key.json)
-          ORG=$(jq -r '.org' service-key.json)
-          SPACE=$(jq -r '.space' service-key.json)
+          ORG=${{ secrets.CF_ORG }}
+          SPACE=${{ secrets.CF_SPACE }}
 
           echo "CF_CLIENT_ID=$CLIENT_ID" >> $GITHUB_ENV
           echo "CF_CLIENT_SECRET=$CLIENT_SECRET" >> $GITHUB_ENV
