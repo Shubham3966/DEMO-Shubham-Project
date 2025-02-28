@@ -28,7 +28,7 @@ public class McmClassController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get MCM Class by ID", description = "Retrieve a specific MCM Class using its ID")
-    public ResponseEntity<?> getMcmClassById(@PathVariable Long id) {
+    public ResponseEntity<?>  getMcmClassById(@PathVariable Long id) {
 
         try {
             McmClass mcmClass = mcmClassService.getMcmClassById(id);
