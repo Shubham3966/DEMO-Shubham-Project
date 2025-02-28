@@ -37,11 +37,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Cloud Foundry CLI
+      - name: Install Cloud Foundry CLI (via apt)
         run: |
-          wget -qO cf-cli.deb https://packages.cloudfoundry.org/stable?release=debian64&source=github
-          sudo dpkg -i cf-cli.deb
-          cf --version  # Check if installed
+          sudo apt update
+          sudo apt install -y cf-cli
+          cf --version  # Verify installation
 
       - name: Login to Cloud Foundry using Service Key
         run: |
