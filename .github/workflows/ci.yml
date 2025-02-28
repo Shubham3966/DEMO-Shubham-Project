@@ -39,9 +39,12 @@ jobs:
 
       - name: Set up Cloud Foundry CLI
         run: |
-          wget -qO- "https://packages.cloudfoundry.org/stable?release=linux64-binary&source=github" | tar -zx
-          sudo mv cf /usr/local/bin/
-          cf --version  # Check if installed
+          curl -fsSL https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo tee /usr/share/keyrings/cloudfoundry-keyring.asc > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/cloudfoundry-keyring.asc] https://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
+          sudo apt update
+          sudo apt install -y cf-cli
+          cf --version  # Verify installation
+
 
       - name: Login to Cloud Foundry using Service Key
         run: |
