@@ -46,15 +46,14 @@ jobs:
           sudo apt install -y cf8-cli
           cf --version  # Verify installation
 
-
-      - name: Authenticate to Cloud Foundry (Using OAuth Token)
+      - name: Authenticate to Cloud Foundry
         env:
-          CF_REFRESH_TOKEN: ${{ secrets.CF_REFRESH_TOKEN }}
+          CF_CLIENT_ID: ${{ secrets.CF_CLIENT_ID }}
+          CF_CLIENT_SECRET: ${{ secrets.CF_CLIENT_SECRET }}
         run: |
           cf api https://api.cf.us10-001.hana.ondemand.com
-          echo "$CF_REFRESH_TOKEN" | cf auth --bearer-token
+          cf auth "$CF_CLIENT_ID" "$CF_CLIENT_SECRET" --client-credentials
           cf target -o "your-org" -s "your-space"
-
 
       - name: Deploy to Cloud Foundry
         run: cf push
