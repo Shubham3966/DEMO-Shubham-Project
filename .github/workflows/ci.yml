@@ -1,4 +1,4 @@
-name: Java CI
+name: Java CI and Deploy to Cloud Foundry
 
 on:
   push:
@@ -27,3 +27,29 @@ jobs:
 
       - name: Run Tests
         run: mvn test
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'  # Deploy only on push to main
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Cloud Foundry CLI
+        run: |
+          wget -qO- "https://packages.cloudfoundry.org/stable?release=linux64-binary&source=github" | tar -zx
+          sudo mv cf /usr/local/bin/
+
+      - name: Login to Cloud Foundry using Service Key
+        run: |
+          echo '${{ secrets.CF_SERVICE_KEY }}' > service-key.json
+          cf api https://api.cf.us10-001.hana.ondemand.com
+          cf auth --client-id $(jq -r '.clientid' service-key.json) \
+                  --client-secret $(jq -r '.clientsecret' service-key.json) \
+                  --identity-url $(jq -r '.url' service-key.json)
+          cf target -o ${{ secrets.CF_ORG }} -s ${{ secrets.CF_SPACE }}
+
+      - name: Deploy to Cloud Foundry
+        run: cf push
