@@ -9,6 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class HomeController {
     @GetMapping
     public String home() {
-        return "Welcome to the MCM Project API!";
+        return "Welcome Shubham Sharma your are great ";
     }
 }
