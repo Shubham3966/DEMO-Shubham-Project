@@ -1,4 +1,4 @@
-name: Java CI/CD to Cloud Foundry
+name: Java CI/CD to Cloud Foundry & AWS Elastic Beanstalk
 
 on:
   push:
@@ -34,48 +34,33 @@ jobs:
           name: application-jar
           path: target/*.jar
 
-  deploy:
+  deploy-aws:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
 
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
           name: application-jar
-          path: target/
+          path: deploy
 
-      - name: Install Cloud Foundry CLI (Latest Version)
+      - name: Package for Deployment
         run: |
-          sudo apt remove cf-cli -y || true
-          curl -fsSL https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo tee /usr/share/keyrings/cloudfoundry-keyring.asc > /dev/null
-          echo "deb [signed-by=/usr/share/keyrings/cloudfoundry-keyring.asc] https://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
-          sudo apt update
-          sudo apt install -y cf8-cli
-          cf --version
+          cd deploy
+          mv *.jar application.jar
+          zip -r ../mcm-project.zip application.jar
 
-      - name: Extract Credentials from JSON
-        run: |
-          echo '${{ secrets.CF_SERVICE_KEY_JSON }}' > service-key.json
-          CLIENT_ID=$(jq -r '.clientid' service-key.json)
-          CLIENT_SECRET=$(jq -r '.clientsecret' service-key.json)
-          ORG=${{ secrets.CF_ORG }}
-          SPACE=${{ secrets.CF_SPACE }}
-
-          echo "CF_CLIENT_ID=$CLIENT_ID" >> $GITHUB_ENV
-          echo "CF_CLIENT_SECRET=$CLIENT_SECRET" >> $GITHUB_ENV
-          echo "CF_ORG=$ORG" >> $GITHUB_ENV
-          echo "CF_SPACE=$SPACE" >> $GITHUB_ENV
-
-      - name: Authenticate to Cloud Foundry
-        run: |
-          cf api https://api.cf.us10-001.hana.ondemand.com
-          cf auth "$CF_CLIENT_ID" "$CF_CLIENT_SECRET" --client-credentials
-          cf target -o "$CF_ORG" -s "$CF_SPACE"
-
-      - name: Deploy to Cloud Foundry
-        run: cf push my-app -p target/*.jar
+      - name: Deploy to AWS Elastic Beanstalk
+        uses: einaregilsson/beanstalk-deploy@v21
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: ${{ secrets.EB_APP_NAME }}
+          environment_name: ${{ secrets.EB_ENV_NAME }}
+          region: ${{ secrets.AWS_REGION }}
+          version_label: "deploy-${{ github.sha }}"
+          deployment_package: "mcm-project.zip"
