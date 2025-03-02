@@ -1,12 +1,16 @@
 pipeline {
     agent any
 
-    triggers {
-        pollSCM('* * * * *') // Checks Git every 1 min
-    }
-
     tools {
         maven 'Maven-3.9.9'
+    }
+
+    environment {
+        AWS_REGION = 'ap-south-1' // Change to your AWS region
+        APPLICATION_NAME = 'MCM_APP' // Elastic Beanstalk App Name
+        ENVIRONMENT_NAME = 'MCMAPP-env' // Elastic Beanstalk Environment Name
+        S3_BUCKET = 'elasticbeanstalk-ap-south-1-490004655906' // S3 bucket for Elastic Beanstalk deployment
+        AWS_CREDENTIALS_ID = 'AWS_CREDENTIALS_ID' // Jenkins AWS Credentials ID
     }
 
     stages {
@@ -25,6 +29,23 @@ pipeline {
         stage('Run Tests') {
             steps {
                 bat 'mvn test'
+            }
+        }
+
+        stage('Deploy to AWS Elastic Beanstalk') {
+            steps {
+                withAWS(credentials: "${AWS_CREDENTIALS_ID}", region: "${AWS_REGION}") {
+                    script {
+                        def artifact = findFiles(glob: 'target/*.jar')[0].path
+                        def versionLabel = "build-${env.BUILD_ID}"
+
+                        bat """
+                            aws s3 cp ${artifact} s3://${S3_BUCKET}/${versionLabel}.jar
+                            aws elasticbeanstalk create-application-version --application-name ${APPLICATION_NAME} --version-label ${versionLabel} --source-bundle S3Bucket=${S3_BUCKET},S3Key=${versionLabel}.jar
+                            aws elasticbeanstalk update-environment --environment-name ${ENVIRONMENT_NAME} --version-label ${versionLabel}
+                        """
+                    }
+                }
             }
         }
     }
