@@ -14,23 +14,12 @@ pipeline {
     }
 
     stages {
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main', url: 'https://github.com/Shubham3966/DEMO-Shubham-Project'
-            }
-        }
 
-        stage('Build with Maven') {
+        stage('Build with Maven and Test') {
             steps {
                 bat 'mvn clean install'
             }
         }
-
-        // stage('Run Tests') {
-        //     steps {
-        //         bat 'mvn test'
-        //     }
-        // }
 
         stage('Deploy to AWS Elastic Beanstalk') {
             steps {
