@@ -39,14 +39,19 @@ pipeline {
                         def artifact = findFiles(glob: '**/*.jar')
                         def versionLabel = "build-${env.BUILD_ID}"
 
+                        if (fileExists(artifact)) {
                         bat """
                             aws s3 cp ${artifact} s3://${S3_BUCKET}/${versionLabel}.jar
                             aws elasticbeanstalk create-application-version --application-name ${APPLICATION_NAME} --version-label ${versionLabel} --source-bundle S3Bucket=${S3_BUCKET},S3Key=${versionLabel}.jar
                             aws elasticbeanstalk update-environment --environment-name ${ENVIRONMENT_NAME} --version-label ${versionLabel}
                         """
+                        } else {
+                            error("JAR file not found: ${artifact}")
+                        }
                     }
                 }
             }
         }
+
     }
 }
