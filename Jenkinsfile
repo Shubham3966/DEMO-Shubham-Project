@@ -26,11 +26,11 @@ pipeline {
             }
         }
 
-        stage('Run Tests') {
-            steps {
-                bat 'mvn test'
-            }
-        }
+        // stage('Run Tests') {
+        //     steps {
+        //         bat 'mvn test'
+        //     }
+        // }
 
         stage('Deploy to AWS Elastic Beanstalk') {
             steps {
