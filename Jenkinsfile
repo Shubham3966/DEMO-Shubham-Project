@@ -36,7 +36,7 @@ pipeline {
             steps {
                 withAWS(credentials: "${AWS_CREDENTIALS_ID}", region: "${AWS_REGION}") {
                     script {
-                        def artifact = findFiles(glob: 'target/*.jar')[0].path
+                        def artifact = findFiles(glob: '**/*.jar')
                         def versionLabel = "build-${env.BUILD_ID}"
 
                         bat """
