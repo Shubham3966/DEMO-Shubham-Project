@@ -34,7 +34,7 @@ pipeline {
 
         stage('Deploy to AWS Elastic Beanstalk') {
             steps {
-                withAWS(credentialsId: "${AWS_CREDENTIALS_ID}", region: "${AWS_REGION}") {
+                withAWS(credentials: "${AWS_CREDENTIALS_ID}", region: "${AWS_REGION}") {
                     script {
                         def artifact = findFiles(glob: '**/*.jar')
                         def versionLabel = "build-${env.BUILD_ID}"
